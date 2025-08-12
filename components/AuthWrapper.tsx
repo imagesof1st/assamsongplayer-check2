@@ -7,30 +7,20 @@ interface AuthWrapperProps {
 }
 
 const AuthWrapper: React.FC<AuthWrapperProps> = ({ children }) => {
-  const { user, loading } = useAuth()
+  const { user, localUserData, loading, isAuthenticated } = useAuth()
 
-  // Force re-authentication on page reload if no valid session
-useEffect(() => {
-  const checkAuthOnReload = () => {
-    // Cast the navigation entry to the correct type
-    const navEntry = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+  // Enhanced loading check with localStorage fallback
+  useEffect(() => {
+    console.log('🔍 AuthWrapper state check:')
+    console.log('  - Loading:', loading)
+    console.log('  - Session user:', user?.email || 'none')
+    console.log('  - Local user data:', localUserData?.email || 'none')
+    console.log('  - Is authenticated:', isAuthenticated)
+  }, [loading, user, localUserData, isAuthenticated])
 
-    const isReload =
-      performance.navigation?.type === 1 || navEntry?.type === 'reload';
-
-    if (isReload && !user && !loading) {
-      console.log('Page reloaded without valid session, redirecting to login');
-      localStorage.clear();
-      sessionStorage.clear();
-    }
-  };
-
-  const timer = setTimeout(checkAuthOnReload, 1000);
-  return () => clearTimeout(timer);
-}, [user, loading]);
-
-  // Show loading spinner with timeout
+  // Show loading spinner with better timeout handling
   if (loading) {
+    console.log('⏳ Showing loading spinner')
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
         <div className="text-center">
@@ -38,18 +28,20 @@ useEffect(() => {
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
           </div>
           <p className="text-white text-lg">Loading your music...</p>
-          <p className="text-gray-400 text-sm mt-2">This should only take a moment</p>
+          <p className="text-gray-400 text-sm mt-2">Checking authentication...</p>
         </div>
       </div>
     )
   }
 
-  // Show login page if no user
-  if (!user) {
+  // Show login page if no authentication (neither session nor localStorage)
+  if (!isAuthenticated) {
+    console.log('🚫 No authentication found, showing login page')
     return <LoginPage />
   }
 
-  // Show main app if user is authenticated
+  // Show main app if user is authenticated (either session or localStorage)
+  console.log('✅ User authenticated, showing main app')
   return <>{children}</>
 }
 
