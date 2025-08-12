@@ -250,15 +250,17 @@ export function useAuth() {
 
   // Return both session user and local user data
   // Priority: use session user if available, otherwise use local data
-  const effectiveUser = user || (localUserData ? {
-    id: localUserData.id,
-    email: localUserData.email,
-    user_metadata: {
-      full_name: localUserData.username,
-      name: localUserData.username,
-      avatar_url: localUserData.avatar_url
-    }
-  } as User : null)
+  const effectiveUser = user || (localUserData
+  ? ({
+      id: localUserData.id,
+      email: localUserData.email,
+      user_metadata: {
+        full_name: localUserData.username,
+        name: localUserData.username,
+        avatar_url: localUserData.avatar_url
+      }
+    } as unknown as User)
+  : null)
 
   return {
     user: effectiveUser,
